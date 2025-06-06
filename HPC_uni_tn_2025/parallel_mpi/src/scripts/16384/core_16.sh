@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N matmul_parallel_mpi
-#PBS -l select=1:ncpus=16:mem=4gb:mpiprocs=16
+#PBS -l select=1:ncpus=16:mem=16gb:mpiprocs=16
 #PBS -l walltime=1:00:00
 #PBS -q short_cpuQ
 
