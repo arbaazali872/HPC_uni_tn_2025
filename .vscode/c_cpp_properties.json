@@ -1,22 +1,18 @@
+
 {
     "configurations": [
         {
-            "name": "Win32",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "C:\\Program Files (x86)\\Microsoft SDKs\\MPI\\Include\\"
-            ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
-            ],
-            "windowsSdkVersion": "10.0.22000.0",
-            "compilerPath": "cl.exe",
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+        "name": "Linux",
+        "includePath": [
+        "${workspaceFolder}/**",
+       "/apps/openmpi-4.0.4/include"
+        ],
+        "defines": [],
+        "compilerPath": "/apps/mpich-3.2/bin/mpicc",
+        "cStandard": "c11",
+        "cppStandard": "gnu++14",
+        "intelliSenseMode": "clang-x64"
         }
-    ],
-    "version": 4
-}
+        ],
+        "version": 4
+       }

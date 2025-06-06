@@ -13,7 +13,4 @@
 #include <sys/types.h>
 #include <stddef.h>   // for offsetof, HGT-GWO_hybrid.c
 #include <errno.h>
-#include <libgen.h> // For dirname
-
-
 #include <mpi.h>
