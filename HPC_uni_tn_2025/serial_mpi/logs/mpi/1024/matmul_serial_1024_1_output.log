@@ -1,0 +1,2 @@
+Serial matmul (outer): N = 9000 (allocating ~1.94 GB total)
+Serial (outer) 9000x9000 matmul took 597.533749 seconds
