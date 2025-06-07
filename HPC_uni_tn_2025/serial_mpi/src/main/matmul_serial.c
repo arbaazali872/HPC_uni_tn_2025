@@ -5,7 +5,10 @@
 #include <time.h>
 
 // Change this to 10000, 15000, 20000, etc.
-#define N 9000
+#ifndef N
+#define N 1000
+#endif
+
 
 // Generate a random double in [0,1)
 static double rand_double() {

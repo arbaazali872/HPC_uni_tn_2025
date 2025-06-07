@@ -1,0 +1,2 @@
+Serial matmul (outer): N = 4096 (allocating ~0.40 GB total)
+Serial (outer) 4096x4096 matmul took 61.600553 seconds
