@@ -4,6 +4,9 @@
 #include <time.h>
 #include <omp.h>
 
+#define N 9000
+
+
 // Generate a random double in [0,1)
 static double rand_double() {
     return (double)rand() / RAND_MAX;
