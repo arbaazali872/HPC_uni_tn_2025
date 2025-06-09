@@ -37,7 +37,7 @@ echo "Using OMP_NUM_THREADS=$OMP_NUM_THREADS"
 cd "$src_dir"
 exe_file="$bin_dir/${base_name}_${dim}"
 
-gcc -O3 -fopenmp -std=c99 "$src_dir/$src_file" -o "$exe_file" -lm
+gcc -O3 -fopenmp -std=c99  -DMATRIX_SIZE=$dim  "$src_dir/$src_file" -o "$exe_file" -lm
 if [ ! -f "$exe_file" ]; then
     echo "Compilation failed. Exiting."
     exit 1

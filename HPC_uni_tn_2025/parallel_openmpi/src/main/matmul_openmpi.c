@@ -4,6 +4,11 @@
 #include <time.h>
 #include <omp.h>
 
+// Change this to 10000, 15000, 20000, etc.
+#ifndef N
+#define N 1024
+#endif
+
 // Generate a random double in [0,1)
 static double rand_double() {
     return (double)rand() / RAND_MAX;
