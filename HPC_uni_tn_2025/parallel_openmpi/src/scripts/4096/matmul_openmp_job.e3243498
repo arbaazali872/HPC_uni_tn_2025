@@ -1,0 +1,2 @@
+/bin/ld: final link failed: Stale file handle
+collect2: error: ld returned 1 exit status

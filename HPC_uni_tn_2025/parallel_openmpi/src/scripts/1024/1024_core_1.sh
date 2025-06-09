@@ -22,7 +22,7 @@ module load mpich-3.2
 #module load openmpi
 
 # ---- Paths ----
-project_root="/home/saad.hussainshafi/HPC_uni_tn_2025/HPC_uni_tn_2025"
+project_root="/home/saad.hussainshafi/HPC_uni_tn_2025-2/HPC_uni_tn_2025"
 bin_dir="$project_root/parallel_openmpi/bin/openmpi/$dim"
 log_dir="$project_root/parallel_openmpi/logs/openmpi/$dim"
 src_dir="$project_root/parallel_openmpi/src/main"
@@ -37,7 +37,7 @@ echo "Using OMP_NUM_THREADS=$OMP_NUM_THREADS"
 cd "$src_dir"
 exe_file="$bin_dir/${base_name}_${dim}"
 
-gcc -O3 -fopenmp -std=c99  -DN=$dim "$src_dir/$src_file" -o "$exe_file" -lm
+gcc -O3 -fopenmp -std=c99 -DN=$dim "$src_dir/$src_file" -o "$exe_file" -lm
 if [ ! -f "$exe_file" ]; then
     echo "Compilation failed. Exiting."
     exit 1
