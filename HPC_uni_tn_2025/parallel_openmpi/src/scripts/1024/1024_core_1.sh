@@ -22,7 +22,7 @@ module load mpich-3.2
 #module load openmpi
 
 # ---- Paths ----
-project_root="/home/saad.hussainshafi/HPC_uni_tn_2025/HPC_uni_tn_2025"
+project_root="/home/saad.hussainshafi/HPC_uni_tn_2025-2/HPC_uni_tn_2025"
 bin_dir="$project_root/parallel_openmpi/bin/openmpi/$dim"
 log_dir="$project_root/parallel_openmpi/logs/openmpi/$dim"
 src_dir="$project_root/parallel_openmpi/src/main"
