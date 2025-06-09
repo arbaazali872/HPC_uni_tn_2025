@@ -9,7 +9,7 @@
 #ifndef N
 #define N 1000
 #endif
-
+//#define N 9000
 
 // Generate a random double in [0,1)
 static double rand_double() {

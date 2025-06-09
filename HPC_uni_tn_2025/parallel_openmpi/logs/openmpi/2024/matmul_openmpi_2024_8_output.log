@@ -1,0 +1,2 @@
+OpenMP outer‐product matmul: N = 2024 (allocating ~0.10 GB total)
+OpenMP outer 2024x2024 matmul took 8.129223 seconds (threads = 1)

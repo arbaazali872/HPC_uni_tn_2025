@@ -34,7 +34,7 @@ cd "$src_dir"
 # ---- Compilation ----
 exe_file="$bin_dir/${base_name}_${dim}_${procs}"
 
-mpicc -O3 -std=c99 -DMATRIX_SIZE=$dim "$src_dir/$src_file" -o "$exe_file" -lm
+gcc -O3 -fopenmp -std=c99 -DN=$dim "$src_dir/$src_file" -o "$exe_file" -lm
 if [ ! -f "$exe_file" ]; then
     echo "Compilation failed."
     exit 1
