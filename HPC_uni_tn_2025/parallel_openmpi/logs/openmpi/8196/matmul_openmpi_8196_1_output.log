@@ -1,2 +1,2 @@
 OpenMP outer‐product matmul: N = 8196 (allocating ~1.61 GB total)
-OpenMP outer 8196x8196 matmul took 583.447701 seconds (threads = 1)
+OpenMP outer 8196x8196 matmul took 476.037269 seconds (threads = 1)
