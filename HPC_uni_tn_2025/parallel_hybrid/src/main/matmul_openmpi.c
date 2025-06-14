@@ -1,101 +1,115 @@
-// matmul_openmp_outer.c
+#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <time.h>
-#include <omp.h>
 
-// Change N as needed (e.g., 10000, 15000, 20000)
-#ifndef N
-#define N 1000
-#endif
+//#define MATRIX_SIZE 1000  // Size of the square matrix (MATRIX_SIZE x MATRIX_SIZE)
 
-
-// Generate a random double in [0,1)
-static double rand_double() {
+// Generate a random double between 0 and 1
+double rand_double() {
     return (double)rand() / RAND_MAX;
 }
 
-// Allocate and fill a rows×cols matrix with random values
-static double* generate_random_matrix(int rows, int cols) {
-    double *A = malloc((size_t)rows * cols * sizeof(double));
-    if (!A) {
-        fprintf(stderr, "Allocation failure for %dx%d matrix\n", rows, cols);
-        exit(1);
+// Fill a matrix with random values
+void generate_random_matrix(double *matrix, int rows, int cols) {
+    for (int i = 0; i < rows * cols; i++) {
+        matrix[i] = rand_double();
     }
-    for (long long i = 0; i < (long long)rows * cols; i++) {
-        A[i] = rand_double();
-    }
-    return A;
 }
 
-// Outer‐product matrix multiplication with OpenMP:
-// C[i][j] += A[i][k] * B[k][j] for all k, i, j
-static void matmul_openmp_outer(const double *A,
-                                const double *B,
-                                double *C)
-{
-    // 1) Zero‐initialize C in parallel
-    #pragma omp parallel for
-    for (long long idx = 0; idx < (long long)N * N; idx++) {
-        C[idx] = 0.0;
-    }
-
-    // 2) Perform outer‐product accumulation in parallel
-    //    Parallelize over k and i via collapse(2)
-    #pragma omp parallel for collapse(2) schedule(static)
-    for (int k = 0; k < N; k++) {
-        for (int i = 0; i < N; i++) {
-            double a_ik = A[i * N + k];
-            for (int j = 0; j < N; j++) {
-                C[i * N + j] += a_ik * B[k * N + j];
+// Perform matrix multiplication for a block of rows (A_block * B = C_block)
+void matmul_block(double *A_block, double *B, double *C_block, int rows_per_proc, int dim) {
+    for (int i = 0; i < rows_per_proc; i++) {
+        for (int j = 0; j < dim; j++) {
+            double sum = 0.0;
+            for (int k = 0; k < dim; k++) {
+                sum += A_block[i * dim + k] * B[k * dim + j];
             }
+            C_block[i * dim + j] = sum;
         }
     }
+
+    // OpenMP parallelization
+    
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i < rows_per_proc; i++) {
+        for (int j = 0; j < dim; j++) {
+            double sum = 0.0;
+            for (int k = 0; k < dim; k++) {
+                sum += A_block[i * dim + k] * B[k * dim + j];
+            }
+            C_block[i * dim + j] = sum;
+        }
+    }
+    
 }
 
-int main() {
-    // 1) Print problem size and memory footprint
-    printf("OpenMP outer‐product matmul: N = %d (allocating ~%.2f GB total)\n",
-           N, (3.0 * N * N * sizeof(double)) / 1e9);
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double *A = NULL, *B = NULL, *C = NULL;
+    double *A_block, *C_block;
+    double start_time, end_time, local_elapsed, max_elapsed;
 
-    // 2) Seed RNG
-    srand((unsigned)time(NULL));
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    // 3) Allocate & initialize A and B
-    double *A = generate_random_matrix(N, N);
-    double *B = generate_random_matrix(N, N);
-
-    // 4) Allocate result matrix C
-    double *C = malloc((size_t)N * N * sizeof(double));
-    if (!C) {
-        fprintf(stderr, "Allocation failure for result matrix\n");
-        exit(1);
+    if (MATRIX_SIZE % size != 0) {
+        if (rank == 0) {
+            fprintf(stderr, "Error: MATRIX_SIZE (%d) must be divisible by number of processes (%d)\n", MATRIX_SIZE, size);
+        }
+        MPI_Finalize();
+        return EXIT_FAILURE;
     }
 
-    // 5) Time the OpenMP outer‐product multiplication
-    struct timeval t_start, t_end;
-    gettimeofday(&t_start, NULL);
+    int rows_per_proc = MATRIX_SIZE / size;
 
-    matmul_openmp_outer(A, B, C);
+    // Allocate memory for A, B, C
+    if (rank == 0) {
+        A = (double *)malloc(MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+        B = (double *)malloc(MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+        C = (double *)malloc(MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
 
-    gettimeofday(&t_end, NULL);
-    double elapsed = (t_end.tv_sec - t_start.tv_sec)
-                   + (t_end.tv_usec - t_start.tv_usec) * 1e-6;
+        srand(time(NULL));
+        generate_random_matrix(A, MATRIX_SIZE, MATRIX_SIZE);
+        generate_random_matrix(B, MATRIX_SIZE, MATRIX_SIZE);
+    } else {
+        B = (double *)malloc(MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+    }
 
-    // 6) Print timing and thread count
-    printf("OpenMP outer %dx%d matmul took %.6f seconds (threads = %d)\n",
-           N, N, elapsed, omp_get_max_threads());
+    A_block = (double *)malloc(rows_per_proc * MATRIX_SIZE * sizeof(double));
+    C_block = (double *)malloc(rows_per_proc * MATRIX_SIZE * sizeof(double));
 
-    // 7) Cleanup
-    free(A);
+    // Broadcast B and scatter A blocks
+    MPI_Bcast(B, MATRIX_SIZE * MATRIX_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Scatter(A, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, A_block, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    // Compute local matrix multiplication
+    start_time = MPI_Wtime();
+    matmul_block(A_block, B, C_block, rows_per_proc, MATRIX_SIZE);
+    end_time = MPI_Wtime();
+
+    local_elapsed = end_time - start_time;
+
+    // Gather result into C
+    MPI_Gather(C_block, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, C, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    // Compute max elapsed time among all processes
+    MPI_Reduce(&local_elapsed, &max_elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        printf("Parallel Hybrid %dx%d matrix multiplication took %.6f seconds (max across ranks)\n", MATRIX_SIZE, MATRIX_SIZE, max_elapsed);
+    }
+
+    // Cleanup
+    free(A_block);
+    free(C_block);
     free(B);
-    free(C);
+    if (rank == 0) {
+        free(A);
+        free(C);
+    }
+
+    MPI_Finalize();
     return 0;
 }
-
-// OpenMP outerΓÇÉproduct matmul: N = 9000 (allocating ~1.94 GB total)
-// OpenMP outer 9000x9000 matmul took 578.969921 seconds (threads = 8)
-
-// OpenMP outerΓÇÉproduct matmul: N = 8000 (allocating ~1.54 GB total)
-// OpenMP outer 8000x8000 matmul took 389.126284 seconds (threads = 8)

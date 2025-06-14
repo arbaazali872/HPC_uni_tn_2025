@@ -7,8 +7,9 @@
 # ---- Configurable section ----
 src_file="matmul_openmpi.c"
 dim=2048
-threads=1
+threads=2
 cores=1
+
 
 # Extract base name without extension
 base_name=$(basename "$src_file" .c)
@@ -22,10 +23,10 @@ module load mpich-3.2
 #module load openmpi
 
 # ---- Paths ----
-project_root="/home/saad.hussainshafi/HPC_uni_tn_2025/HPC_uni_tn_2025"
-bin_dir="$project_root/parallel_openmpi/bin/openmpi/$dim"
-log_dir="$project_root/parallel_openmpi/logs/openmpi/$dim"
-src_dir="$project_root/parallel_openmpi/src/main"
+project_root="/home/saad.hussainshafi/HPC_uni_tn_2025/HPC_uni_tn_2025/parallel_hybrid"
+bin_dir="$project_root/bin/openmpi/$dim"
+log_dir="$project_root/logs/openmpi/$dim"
+src_dir="$project_root/src/main"
 
 mkdir -p "$bin_dir"
 mkdir -p "$log_dir"
@@ -37,7 +38,7 @@ echo "Using OMP_NUM_THREADS=$OMP_NUM_THREADS"
 cd "$src_dir"
 exe_file="$bin_dir/${base_name}_${dim}"
 
-gcc -O3 -fopenmp -std=c99 "$src_dir/$src_file" -o "$exe_file" -lm
+mpicc -O3 -fopenmp -std=c99 -DMATRIX_SIZE=$dim "$src_dir/$src_file" -o "$exe_file" -lm
 if [ ! -f "$exe_file" ]; then
     echo "Compilation failed. Exiting."
     exit 1

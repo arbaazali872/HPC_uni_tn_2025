@@ -1,2 +1,1 @@
-OpenMP outer-product matmul: N = 4096 (allocating ~0.40 GB total)
-OpenMP outer 4096x4096 matmul took 59.702135 seconds (threads = 1)
+Parallel Hybrid 4096x4096 matrix multiplication took 1331.467928 seconds (max across ranks)

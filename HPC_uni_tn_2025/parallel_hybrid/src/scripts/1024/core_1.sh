@@ -18,9 +18,8 @@ echo "Using OMP_NUM_THREADS=$OMP_NUM_THREADS"
 cd $PBS_O_WORKDIR
 
 # Compile the OpenMP matrix multiplication code
-gcc -O3 -fopenmp -std=c99 matmul_8000_openmp.c -o matmul_8000_openmp -lm
-
+mpicc -O3 -fopenmp -std=c99 "$src_file" -o "$exe_file" -lm
 # Run the executable
-./matmul_8000_openmp
+./matmul_openmpi
 
 # we have three main things from here: output, logs, fold
