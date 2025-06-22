@@ -17,32 +17,26 @@ void generate_random_matrix(double *matrix, int rows, int cols) {
     }
 }
 
-// Perform matrix multiplication for a block of rows (A_block * B = C_block)
 void matmul_block(double *A_block, double *B, double *C_block, int rows_per_proc, int dim) {
-    for (int i = 0; i < rows_per_proc; i++) {
-        for (int j = 0; j < dim; j++) {
-            double sum = 0.0;
-            for (int k = 0; k < dim; k++) {
-                sum += A_block[i * dim + k] * B[k * dim + j];
-            }
-            C_block[i * dim + j] = sum;
-        }
+    // Step 1: Zero-initialize the output matrix
+    #pragma omp parallel for
+    for (int idx = 0; idx < rows_per_proc * dim; idx++) {
+        C_block[idx] = 0.0;
     }
 
-    // OpenMP parallelization
-    
-    #pragma omp parallel for collapse(2)
-    for (int i = 0; i < rows_per_proc; i++) {
-        for (int j = 0; j < dim; j++) {
-            double sum = 0.0;
-            for (int k = 0; k < dim; k++) {
-                sum += A_block[i * dim + k] * B[k * dim + j];
+    // Step 2: Outer-product matrix multiplication
+    // For each k, accumulate the outer product of A_block[:,k] and B[k,:]
+    #pragma omp parallel for collapse(2) schedule(static)
+    for (int k = 0; k < dim; k++) {
+        for (int i = 0; i < rows_per_proc; i++) {
+            double a_ik = A_block[i * dim + k];
+            for (int j = 0; j < dim; j++) {
+                C_block[i * dim + j] += a_ik * B[k * dim + j];
             }
-            C_block[i * dim + j] = sum;
         }
     }
-    
 }
+
 
 int main(int argc, char *argv[]) {
     int rank, size;
