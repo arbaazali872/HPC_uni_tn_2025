@@ -7,7 +7,6 @@
 # ---- Configurable section ----
 src_file="matmul_openmpi.c"
 dim=16384
-threads=1
 cores=32
 threads=2
 # Extract base name without extension

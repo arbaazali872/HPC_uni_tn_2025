@@ -1,2 +1,2 @@
-OpenMP outer‐product matmul: N = 16384 (allocating ~6.44 GB total)
-OpenMP outer 16384x16384 matmul took 4233.968156 seconds (threads = 1)
+OpenMP outer‐product matmul: N = 1000 (allocating ~0.02 GB total)
+OpenMP outer 1000x1000 matmul took 0.992274 seconds (threads = 2)
