@@ -2,12 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
   
 #ifndef MATRIX_SIZE
 #define MATRIX_SIZE 1000
 #endif
-
 
 // Generate a random double between 0 and 1
 double rand_double() {
@@ -21,26 +19,29 @@ void generate_random_matrix(double *matrix, int rows, int cols) {
     }
 }
 
-void matmul_block(double *A_block, double *B, double *C_block, int rows_per_proc, int dim) {
-    // Step 1: Zero-initialize the result block
-    #pragma omp parallel for
-    for (int idx = 0; idx < rows_per_proc * dim; idx++) {
-        C_block[idx] = 0.0;
+// Perform matrix multiplication using outer-product formulation
+// C_block += A_block[:,k] * B[k,:] for each k
+void matmul_block_outer(double *A_block, double *B, double *C_block, int rows_per_proc, int dim) {
+    // Initialize C_block to zero
+    for (int i = 0; i < rows_per_proc * dim; i++) {
+        C_block[i] = 0.0;
     }
 
-    // Step 2: Outer-product based multiplication
-    // Collapse k and i so that threads work on full combinations
-    #pragma omp parallel for collapse(2) schedule(static)
+    // Outer-product: iterate over k
     for (int k = 0; k < dim; k++) {
+        // Pointer to the k-th row of B
+        double *B_row = B + k * dim;
+        
+        // For each local row i, scale B_row by A_block[i][k]
         for (int i = 0; i < rows_per_proc; i++) {
-            double a_ik = A_block[i * dim + k];  // ith row of A_block, kth column
+            double a_val = A_block[i * dim + k];
+            // Rank-1 update to C_block row i
             for (int j = 0; j < dim; j++) {
-                C_block[i * dim + j] += a_ik * B[k * dim + j];
+                C_block[i * dim + j] += a_val * B_row[j];
             }
         }
     }
 }
-
 
 int main(int argc, char *argv[]) {
     int rank, size;
@@ -80,23 +81,28 @@ int main(int argc, char *argv[]) {
 
     // Broadcast B and scatter A blocks
     MPI_Bcast(B, MATRIX_SIZE * MATRIX_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Scatter(A, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, A_block, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Scatter(A, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE,
+                A_block, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE,
+                0, MPI_COMM_WORLD);
 
-    // Compute local matrix multiplication
+    // Compute local matrix multiplication (outer-product)
     start_time = MPI_Wtime();
-    matmul_block(A_block, B, C_block, rows_per_proc, MATRIX_SIZE);
+    matmul_block_outer(A_block, B, C_block, rows_per_proc, MATRIX_SIZE);
     end_time = MPI_Wtime();
 
     local_elapsed = end_time - start_time;
 
     // Gather result into C
-    MPI_Gather(C_block, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, C, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(C_block, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE,
+               C, rows_per_proc * MATRIX_SIZE, MPI_DOUBLE,
+               0, MPI_COMM_WORLD);
 
     // Compute max elapsed time among all processes
     MPI_Reduce(&local_elapsed, &max_elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        printf("MPI %dx%d matrix multiplication took %.6f seconds (max across ranks)\n", MATRIX_SIZE, MATRIX_SIZE, max_elapsed);
+        printf("MPI %dx%d matrix multiplication (outer-product) took %.6f seconds (max across ranks)\n", 
+               MATRIX_SIZE, MATRIX_SIZE, max_elapsed);
     }
 
     // Cleanup
