@@ -1,1 +1,1 @@
-MPI 8192x8192 matrix multiplication took 753.483843 seconds (max across ranks)
+MPI 8192x8192 matrix multiplication (outer-product) took 78.976935 seconds (max across ranks)

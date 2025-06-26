@@ -1,1 +1,1 @@
-MPI 2048x2048 matrix multiplication took 6.864565 seconds (max across ranks)
+MPI 2048x2048 matrix multiplication (outer-product) took 0.718649 seconds (max across ranks)

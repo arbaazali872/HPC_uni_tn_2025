@@ -1,0 +1,4 @@
+/home/saad.hussainshafi/HPC_uni_tn_2025/HPC_uni_tn_2025/parallel_mpi/src/main/matmul_parallel_mpi.c:1:17: fatal error: mpi.h: No such file or directory
+ #include <mpi.h>
+                 ^
+compilation terminated.

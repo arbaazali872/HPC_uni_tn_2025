@@ -1,1 +1,1 @@
-MPI 1024x1024 matrix multiplication took 1.054896 seconds (max across ranks)
+MPI 1024x1024 matrix multiplication (outer-product) took 0.089881 seconds (max across ranks)

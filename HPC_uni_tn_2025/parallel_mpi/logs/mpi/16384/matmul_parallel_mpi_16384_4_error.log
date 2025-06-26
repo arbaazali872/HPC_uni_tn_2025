@@ -1,7 +1,0 @@
-Fatal error in PMPI_Bcast: Other MPI error, error stack:
-PMPI_Bcast(1600)........: MPI_Bcast(buf=0x2b13c5500010, count=268435456, MPI_DOUBLE, root=0, MPI_COMM_WORLD) failed
-MPIR_Bcast_impl(1452)...: 
-MPIR_Bcast(1476)........: 
-MPIR_Bcast_intra(1249)..: 
-MPIR_SMP_Bcast(1088)....: 
-MPIR_Bcast_binomial(250): message sizes do not match across processes in the collective routine: Received -32766 but expected -2147483648

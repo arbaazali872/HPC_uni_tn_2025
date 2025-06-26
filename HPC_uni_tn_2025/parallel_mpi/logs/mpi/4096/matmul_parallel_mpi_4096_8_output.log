@@ -1,1 +1,1 @@
-MPI 4096x4096 matrix multiplication took 67.582774 seconds (max across ranks)
+MPI 4096x4096 matrix multiplication (outer-product) took 10.321623 seconds (max across ranks)
