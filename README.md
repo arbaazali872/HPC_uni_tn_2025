@@ -21,7 +21,7 @@ The project calculates the speedup and efficiency for each implementation (MPI, 
 - **Speedup**: The ratio of the execution time of the serial implementation to the execution time of the parallel implementation.
 - **Efficiency**: The speedup divided by the number of cores.
 
-The speedup and efficiency are then visualized using line plots, showing the performance metrics against the number of cores for different matrix sizes. The plots are saved as PNG files: `speedup_MPI.png`, `efficiency_MPI.png`, `speedup_OpenMPI.png`, `efficiency_OpenMPI.png`, `speedup_Hybrid.png`, and `efficiency_Hybrid.png`.
+The speedup and efficiency are then visualized using line plots, showing the performance metrics against the number of cores for different matrix sizes. The plots are avalaible in the Jupyter Notebook and also in the report.
 
 ## How to Run
 
