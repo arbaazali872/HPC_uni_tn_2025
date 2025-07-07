@@ -1,7 +1,7 @@
 // matmul_openmp_outer.c
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
+#include <time.h>
 #include <time.h>
 #include <omp.h>
 
@@ -9,7 +9,6 @@
 #ifndef N
 #define N 1000
 #endif
-//#define N 9000
 
 // Generate a random double in [0,1)
 static double rand_double() {
@@ -29,8 +28,7 @@ static double* generate_random_matrix(int rows, int cols) {
     return A;
 }
 
-// Outer‐product matrix multiplication with OpenMP:
-// C[i][j] += A[i][k] * B[k][j] for all k, i, j
+// Outer‐product matrix multiplication with OpenMP (race-free, outer-product form)
 static void matmul_openmp_outer(const double *A,
                                 const double *B,
                                 double *C)
@@ -41,10 +39,11 @@ static void matmul_openmp_outer(const double *A,
         C[idx] = 0.0;
     }
 
-    // 2) Perform outer‐product accumulation in parallel
-    //    Parallelize over k and i via collapse(2)
-    #pragma omp parallel for collapse(2) schedule(static)
+    // 2) Perform outer‐product accumulation
+    // Outer loop over k is serial
+    // Inner i-loop is parallelized: each thread owns row i and updates C[i][j]
     for (int k = 0; k < N; k++) {
+        #pragma omp parallel for schedule(static)
         for (int i = 0; i < N; i++) {
             double a_ik = A[i * N + k];
             for (int j = 0; j < N; j++) {
@@ -56,7 +55,7 @@ static void matmul_openmp_outer(const double *A,
 
 int main() {
     // 1) Print problem size and memory footprint
-    printf("OpenMP outer‐product matmul: N = %d (allocating ~%.2f GB total)\n",
+    printf("OpenMP outer-product matmul: N = %d (allocating ~%.2f GB total)\n",
            N, (3.0 * N * N * sizeof(double)) / 1e9);
 
     // 2) Seed RNG
@@ -73,7 +72,7 @@ int main() {
         exit(1);
     }
 
-    // 5) Time the OpenMP outer‐product multiplication
+    // 5) Time the OpenMP outer-product multiplication
     struct timeval t_start, t_end;
     gettimeofday(&t_start, NULL);
 
