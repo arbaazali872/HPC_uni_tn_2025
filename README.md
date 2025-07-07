@@ -1,4 +1,3 @@
-%%writefile README.md
 ## Project Overview
 
 This project analyzes the performance of different matrix multiplication implementations (MPI, OpenMPI, and Hybrid) by extracting execution times from log files and calculating speedup and efficiency metrics.
